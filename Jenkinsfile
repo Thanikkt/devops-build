@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DEV_REPO = "thanik/dev"
-        PROD_REPO = "thanik/prod"
+        DOCKER_DEV_REPO = "thanikavel/dev"
+        DOCKER_PROD_REPO = "thanikavel/prod"
+        IMAGE_NAME = "devops-build"
     }
 
     stages {
@@ -16,15 +17,30 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t devops-build .'
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
         stage('Push to DEV Repo') {
+            when {
+                branch 'dev'
+            }
             steps {
                 sh '''
-                docker tag devops-build thanik/dev:latest
-                docker push thanik/dev:latest
+                docker tag $IMAGE_NAME $DOCKER_DEV_REPO:latest
+                docker push $DOCKER_DEV_REPO:latest
+                '''
+            }
+        }
+
+        stage('Push to PROD Repo') {
+            when {
+                branch 'master'
+            }
+            steps {
+                sh '''
+                docker tag $IMAGE_NAME $DOCKER_PROD_REPO:latest
+                docker push $DOCKER_PROD_REPO:latest
                 '''
             }
         }
@@ -33,9 +49,9 @@ pipeline {
             steps {
                 sh '''
                 docker rm -f devops-container || true
-                docker run -d -p 80:80 --name devops-container devops-build
+                docker run -d -p 80:80 --name devops-container $IMAGE_NAME
                 '''
             }
         }
-
     }
+}
