@@ -2,16 +2,15 @@ pipeline {
     agent any
 
     environment {
-        DEV_REPO = "thanikavel/dev"
-        PROD_REPO = "thanikavel/prod"
-        DOCKER_CREDS = "dockerhub-creds"
+        DEV_REPO = "thanik/dev"
+        PROD_REPO = "thanik/prod"
     }
 
     stages {
 
         stage('Checkout Code') {
             steps {
-                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/Thanikkt/devops-build.git'
+                git branch: 'dev', url: 'https://github.com/Thanikkt/devops-build.git'
             }
         }
 
@@ -22,32 +21,11 @@ pipeline {
         }
 
         stage('Push to DEV Repo') {
-            when {
-                branch 'dev'
-            }
             steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDS}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh '''
-                    echo $PASS | docker login -u $USER --password-stdin
-                    docker tag devops-build $DEV_REPO:latest
-                    docker push $DEV_REPO:latest
-                    '''
-                }
-            }
-        }
-
-        stage('Push to PROD Repo') {
-            when {
-                branch 'master'
-            }
-            steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDS}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh '''
-                    echo $PASS | docker login -u $USER --password-stdin
-                    docker tag devops-build $PROD_REPO:latest
-                    docker push $PROD_REPO:latest
-                    '''
-                }
+                sh '''
+                docker tag devops-build thanik/dev:latest
+                docker push thanik/dev:latest
+                '''
             }
         }
 
@@ -61,4 +39,3 @@ pipeline {
         }
 
     }
-}
