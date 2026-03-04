@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker pull thanik/prod:latest
+docker pull thanikavel/prod:latest
 
 docker stop devops-container || true
 
